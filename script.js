@@ -1,73 +1,163 @@
-let form = document.querySelector("#form")
-let input = document.querySelector("#task")
-let list = document.querySelector("#list")
-let tasks = localStorage.getItem("tasks")
+class TodoApp {
+    constructor() {
+        this.form = document.querySelector("#form");
+        this.input = document.querySelector("#task");
+        this.list = document.querySelector("#list");
+        this.tasks = [];
+        this.editingId = null;
 
-if (tasks) {
-    tasks = JSON.parse(tasks)
-} else {
-    tasks = []
-}
+        this.loadInitialData();
+        this.bindEvents();
+        this.render();
+    }
 
-const save = () => {
-    localStorage.setItem("tasks", JSON.stringify(tasks))
-}
+    loadInitialData() {
+        let tasks = localStorage.getItem("tasks");
 
-const render = () => {
-    list.innerHTML = ""
+        if (tasks) {
+            tasks = JSON.parse(tasks);
 
-    for (let i = 0; i < tasks.length; i++) {
-        let li = document.createElement("li")
+            this.tasks = tasks.map((task, index) => {
+                if (typeof task === "string") {
+                    return {
+                        id: index + 1,
+                        text: task
+                    };
+                }
 
-        li.textContent = tasks[i] + " "
+                return task;
+            });
+        } else {
+            this.tasks = [];
+        }
+    }
 
-        let editBtn = document.createElement("button")
-        editBtn.textContent = "Edit"
+    bindEvents() {
+        this.form.addEventListener("submit", this.onSubmit.bind(this));
+        this.list.addEventListener("click", this.onClick.bind(this));
+    }
 
-        let delBtn = document.createElement("button")
-        delBtn.textContent = "Delete"
+    createTodoElement(id, text) {
+        let li = document.createElement("li");
+        li.dataset.id = id;
 
-        delBtn.addEventListener("click", () => {
-            tasks.splice(i, 1)
-            save()
-            render()
-        })
+        let span = document.createElement("span");
+        span.textContent = text;
 
-        editBtn.addEventListener("click", () => {
-            let editInput = document.createElement("input")
-            editInput.value = tasks[i]
+        let editInput = document.createElement("input");
+        editInput.type = "text";
+        editInput.value = text;
+        editInput.style.display = "none";
 
-            let saveBtn = document.createElement("button")
-            saveBtn.textContent = "Save"
+        let editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.className = "edit-btn";
+        editBtn.dataset.id = id;
 
-            li.innerHTML = ""
-            li.appendChild(editInput)
-            li.appendChild(saveBtn)
+        let saveBtn = document.createElement("button");
+        saveBtn.textContent = "Save";
+        saveBtn.className = "save-btn";
+        saveBtn.dataset.id = id;
+        saveBtn.style.display = "none";
 
-            saveBtn.addEventListener("click", () => {
-                tasks[i] = editInput.value
-                save()
-                render()
-            })
-        })
+        let delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.className = "delete-btn";
+        delBtn.dataset.id = id;
 
-        li.appendChild(editBtn)
-        li.appendChild(delBtn)
+        if (this.editingId === id) {
+            span.style.display = "none";
+            editBtn.style.display = "none";
+            editInput.style.display = "inline-block";
+            saveBtn.style.display = "inline-block";
+        }
 
-        list.appendChild(li)
+        li.appendChild(span);
+        li.appendChild(editInput);
+        li.appendChild(editBtn);
+        li.appendChild(saveBtn);
+        li.appendChild(delBtn);
+
+        return li;
+    }
+
+    save() {
+        localStorage.setItem("tasks", JSON.stringify(this.tasks));
+    }
+
+    render() {
+        this.list.innerHTML = "";
+
+        for (let i = 0; i < this.tasks.length; i++) {
+            let li = this.createTodoElement(this.tasks[i].id, this.tasks[i].text);
+            this.list.appendChild(li);
+        }
+    }
+
+    onSubmit(e) {
+        e.preventDefault();
+
+        let value = this.input.value.trim();
+        if (value === "") return;
+
+        this.tasks.push({
+            id: Date.now(),
+            text: value
+        });
+
+        this.save();
+        this.render();
+
+        this.input.value = "";
+    }
+
+    onClick(e) {
+        if (e.target.classList.contains("delete-btn")) {
+            this.deleteTodo(e);
+        }
+
+        if (e.target.classList.contains("edit-btn")) {
+            this.editTodo(e);
+        }
+
+        if (e.target.classList.contains("save-btn")) {
+            this.saveTodo(e);
+        }
+    }
+
+    deleteTodo(e) {
+        let id = Number(e.target.dataset.id);
+
+        this.tasks = this.tasks.filter(task => task.id !== id);
+        this.save();
+        this.render();
+    }
+
+    editTodo(e) {
+        let id = Number(e.target.dataset.id);
+        this.editingId = id;
+        this.render();
+    }
+
+    saveTodo(e) {
+        let id = Number(e.target.dataset.id);
+        let li = e.target.parentElement;
+        let editInput = li.querySelector("input");
+
+        let newText = editInput.value.trim();
+        if (newText === "") return;
+
+        for (let i = 0; i < this.tasks.length; i++) {
+            if (this.tasks[i].id === id) {
+                this.tasks[i].text = newText;
+                break;
+            }
+        }
+
+        this.editingId = null;
+        this.save();
+        this.render();
     }
 }
 
-form.addEventListener("submit", (e) => {
-    e.preventDefault()
-
-    if (input.value === "") return
-
-    tasks.push(input.value)
-    save()
-    render()
-
-    input.value = ""
-})
-
-render()
+new TodoApp();
