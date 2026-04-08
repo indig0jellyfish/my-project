@@ -1,0 +1,40 @@
+body {
+    background-color: #ffe6eb;
+    font-family: Arial, sans-serif;
+}
+
+form {
+    margin: 20px;
+}
+
+input {
+    padding: 8px;
+    border: 1px solid #ffb6c1;
+    border-radius: 5px;
+}
+
+button {
+    padding: 8px 10px;
+    margin-left: 5px;
+    background-color: #ffb6c1;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #ff99aa;
+}
+
+ul {
+    margin: 20px;
+    padding: 0;
+}
+
+li {
+    list-style: none;
+    background-color: #fff0f5;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
