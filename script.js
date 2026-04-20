@@ -34,7 +34,6 @@ class TodoApp {
             delBtn.textContent = "Delete"
             delBtn.className = "delete"
 
-            // store index instead of id
             editBtn.dataset.index = i
             delBtn.dataset.index = i
 
@@ -48,10 +47,9 @@ class TodoApp {
     onSubmit(e) {
         e.preventDefault()
 
-        let value = this.input.value.trim()
-        if (value === "") return
+        if (this.input.value === "") return
 
-        this.tasks.push(value)
+        this.tasks.push(this.input.value)
         this.save()
         this.render()
 
@@ -78,13 +76,24 @@ class TodoApp {
 
     editTodo(e) {
         let index = e.target.dataset.index
+        let li = e.target.parentElement
 
-        let newText = prompt("Edit task:", this.tasks[index])
-        if (newText === null || newText.trim() === "") return
+        let editInput = document.createElement("input")
+        editInput.value = this.tasks[index]
 
-        this.tasks[index] = newText
-        this.save()
-        this.render()
+        let saveBtn = document.createElement("button")
+        saveBtn.textContent = "Save"
+        saveBtn.type = "button"
+
+        li.innerHTML = ""
+        li.appendChild(editInput)
+        li.appendChild(saveBtn)
+
+        saveBtn.addEventListener("click", () => {
+            this.tasks[index] = editInput.value
+            this.save()
+            this.render()
+        })
     }
 }
 
